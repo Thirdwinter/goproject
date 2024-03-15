@@ -2,6 +2,7 @@
 package middleware
 
 import (
+	"fmt"
 	"goproject/utils/rspcode"
 
 	"github.com/gin-gonic/gin"
@@ -10,6 +11,7 @@ import (
 func CheckUserRole() gin.HandlerFunc{
 	return func (c *gin.Context)  {
 		role, exists :=c.Get("role")
+		fmt.Println("r:",role)
 		if !exists {
 			c.JSON(200, gin.H{
 				"code":rspcode.ERROR_USER_NO_RIGHT,
@@ -18,7 +20,8 @@ func CheckUserRole() gin.HandlerFunc{
 			c.Abort()
 			return
 		}
-		if role == 1{
+		userRole := role.(int)
+		if userRole ==1||userRole ==2{
 			c.Next()
 			return
 		} else{
@@ -35,6 +38,7 @@ func CheckUserRole() gin.HandlerFunc{
 func CheckAdminRole() gin.HandlerFunc{
 	return func(c *gin.Context) {
 		role, exists :=c.Get("role")
+		fmt.Println("r:",role)
 		if !exists {
 			c.JSON(200, gin.H{
 				"code":rspcode.ERROR_USER_NO_RIGHT,
@@ -43,7 +47,8 @@ func CheckAdminRole() gin.HandlerFunc{
 			c.Abort()
 			return
 		}
-		if role == 1 || role == 2{
+		adminRole:=role.(int)
+		if adminRole ==2{
 			c.Next()
 			return
 		} else {
@@ -51,6 +56,8 @@ func CheckAdminRole() gin.HandlerFunc{
 				"code":rspcode.ERROR_USER_NO_RIGHT,
 				"msg":"用户不正确",
 			})
+			c.Abort()
+			return
 		}
 	}
 }

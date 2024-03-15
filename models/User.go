@@ -86,26 +86,26 @@ func CreateUser(data *User) (code int) {
 }
 
 // 登录验证
-func CheckLogin(username string, password string) int {
+func CheckLogin(username string, password string) (int, User) {
 	var user User
 	global.Db.Where("username=?", username).First(&user)
 	//fmt.Println(username,password)
 	//fmt.Println(user)
 	if user.ID == 0 {
-		return rspcode.ERROR_USER_NOT_EXIST
+		return rspcode.ERROR_USER_NOT_EXIST,user
 	}
 	if password == "" {
-		return rspcode.ERROR_PASSWORD_NO_EXIST
+		return rspcode.ERROR_PASSWORD_NO_EXIST,user
 	}
 	encryptedPassword := ScryptPw(password, user.Salt) // 对输入的密码进行加密
 
 	if encryptedPassword != user.Password {
-		return rspcode.ERROR_PASSWORD_WRONG
+		return rspcode.ERROR_PASSWORD_WRONG,user
 	}
-	if user.Role != 1 {
-		return rspcode.ERROR_USER_NO_RIGHT
+	if user.Role != 1&&user.Role!=2 {
+		return rspcode.ERROR_USER_NO_RIGHT,user
 	}
-	return rspcode.SUCCESS
+	return rspcode.SUCCESS,user
 }
 
 func hashString(input string) string {

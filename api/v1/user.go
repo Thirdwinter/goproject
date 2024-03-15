@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"goproject/middleware"
 	"goproject/models"
 	_ "goproject/service"
@@ -18,6 +19,7 @@ func AddUser(c *gin.Context) {
 	var data models.User
 	//var headimg models.HeadImg
 	_ = c.ShouldBindJSON(&data)
+	//fmt.Printf("%#v",data)
 	// _ = c.ShouldBindJSON(&data.Password)
 	// _ = c.ShouldBindJSON(&data.Role)
 	// _ = c.ShouldBindJSON(&headimg)
@@ -53,9 +55,11 @@ func Login(c *gin.Context) {
 	//fmt.Println("json:",data)
 	var atoken string
 	var rtoken string
-	code = models.CheckLogin(data.Username, data.Password)
+	code ,user:= models.CheckLogin(data.Username, data.Password)
+	//fmt.Println("user:",user)
 	if code == rspcode.SUCCESS {
-		atoken, rtoken, code = middleware.SetToken(data.Username,data.Role)
+		fmt.Println("login,r:",user.Role)
+		atoken, rtoken, code = middleware.SetToken(data.Username, user.Role)
 		//atoken, _ = mdw2.SetToken(data.Username)
 		//c.SetCookie("token", atoken, 3600, "/", "", false, true)
 

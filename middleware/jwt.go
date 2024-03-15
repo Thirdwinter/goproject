@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"time"
 
 	"goproject/global"
@@ -26,12 +27,12 @@ func Jwt() []byte {
 }
 
 // 生成token
-func SetToken(username string,role int) (string, string, int) {
+func SetToken(username string, role int) (string, string, int) {
 	expireTime := time.Now().Add(24 * time.Hour)
 	r_expireTime := time.Now().Add(48 * time.Hour)
 	SetClaims := MyClaims{
 		Username: username,
-		Role: role,
+		Role:     role,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expireTime.Unix(),
 			Issuer:    "ginblog",
@@ -100,7 +101,7 @@ func RefreshToken(aToken string, rToken string) (newToken string, newRtoken stri
 
 	// 当atoken是过期错误,且rtoken没有过期就创建一个新的access token
 	if v.Errors == jwt.ValidationErrorExpired {
-		newAToken, newRToken, errCode := SetToken(claims.Username,claims.Role)
+		newAToken, newRToken, errCode := SetToken(claims.Username, claims.Role)
 		if errCode == rspcode.SUCCESS {
 			return newAToken, newRToken, rspcode.RTOKEN_SUCCESS
 		}
@@ -125,12 +126,19 @@ func JwtToken() gin.HandlerFunc {
 		}
 		//校验正确
 		info, tCode := CheckToken(atoken)
+		a, ok := info.(*MyClaims)
+		fmt.Println("a.role:",a.Role)
+		if !ok {
+			fmt.Println("no")
+			return
+		}
+		fmt.Printf("info: %#v", a.Username)
 		switch tCode {
 		case 200:
 			{
 				//校验成功
-				c.Set("role", info.(jwt.MapClaims)["role"])
-				c.Set("username", info.(jwt.MapClaims)["username"])
+				c.Set("role", a.Role)
+				c.Set("username", a.Username)
 				c.Next()
 				return
 			}

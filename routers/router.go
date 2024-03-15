@@ -13,16 +13,22 @@ func InitRouter() {
 	gin.SetMode(global.Config.System.Env)
 	r:=gin.Default()
 	r.Use(middleware.Logrus())
-	r.Use(middleware.Next())
-	r.Use(middleware.JwtToken())
+	//r.Use(middleware.Next())
 	//r := gin.New()
 	
-	r.POST("user/login", v1.Login)	// 登录
-	r.POST("user/add", v1.AddUser)	// 注册
+	r.POST("api/user/add", v1.AddUser)	// 注册
+	r.POST("api/user/login", v1.Login)	// 登录
+	r.Use(middleware.JwtToken())
 	
-	user:=r.Group("api")
+	user:=r.Group("user")
 	user.Use(middleware.CheckUserRole())
 	{
+		user.POST("login", v1.Login)
+	}
+	admin:=r.Group("admin")
+	admin.Use(middleware.CheckAdminRole())
+	{
+		admin.POST("login", v1.Login)
 	}
 
 	r.Run(global.Config.System.Addr())
