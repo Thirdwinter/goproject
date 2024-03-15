@@ -1,9 +1,10 @@
 package routers
 
 import (
+	v1 "goproject/api/v1"
 	"goproject/global"
-	"goproject/api/v1"
 
+	"goproject/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,11 +12,17 @@ import (
 func InitRouter() {
 	gin.SetMode(global.Config.System.Env)
 	r:=gin.Default()
+	r.Use(middleware.Logrus())
+	r.Use(middleware.Next())
+	r.Use(middleware.JwtToken())
 	//r := gin.New()
-	//r.Use(middleware.Logrus())
+	
+	r.POST("user/login", v1.Login)	// 登录
+	r.POST("user/add", v1.AddUser)	// 注册
+	
 	user:=r.Group("api")
+	user.Use(middleware.CheckUserRole())
 	{
-		user.POST("user/add", v1.AddUser)
 	}
 
 	r.Run(global.Config.System.Addr())

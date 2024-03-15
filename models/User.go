@@ -1,52 +1,74 @@
 package models
 
 import (
-	"encoding/base64"
+	"crypto/rand"
+	"crypto/sha1"
+	"encoding/hex"
 	"goproject/global"
 	"goproject/utils/rspcode"
 
-	_ "github.com/go-playground/validator/v10"
+	//"github.com/go-playground/validator/v10"
 	"github.com/jinzhu/gorm"
-	"golang.org/x/crypto/scrypt"
 )
+
+// type User struct {
+// 	gorm.Model
+// 	Username string `gorm:"type:varchar(20);not null" json:"username" binding:"required" validate:"required,min=4,max=12" label:"用户名"`
+// 	Password string `gorm:"type:varchar(20);not null" json:"password" binding:"required" validate:"required,min=6,max=20" label:"密码"`
+// 	Role     int    `gorm:"type:int;DEFAULT:2" json:"role" validate:"required,gte=2" label:"角色码"`
+// 	Image    string `gorm:"type:text" label:"用户头像"`
+// 	Salt     []byte `gorm:"type:varchar(20)" label:"m"`
+// }
 
 type User struct {
 	gorm.Model
-	Username string `gorm:"type:varchar(20);not null" json:"username" binding:"required" validate:"required,min=4,max=12" label:"用户名"`
-	Password string `gorm:"type:varchar(20);not null" json:"password" binding:"required" validate:"required,min=0,max=20" label:"密码"`
-	Role     int    `gorm:"type:int;DEFAULT:2" json:"role" validate:"required,gte=2" label:"角色码"`
-	Image    string `gorm:"type:text;default:'http://s98w22032.hb-bkt.clouddn.com/default.jpg'" json:"img" label:"用户头像"`
+	Username string `gorm:"type:varchar(20);not null" json:"username" binding:"required" label:"用户名"`
+	Password string `gorm:"type:varchar(50);not null" json:"password" binding:"required" label:"密码"`
+	Role     int    `gorm:"type:int;DEFAULT:2" json:"role" label:"角色码"`
+	Image    string `gorm:"type:text" label:"用户头像"`
+	Salt     string `gorm:"type:varchar(20)" label:"m"`
 }
 
 type HeadImg struct {
 	Imgstr string `json:"headimg"`
 }
 
-// 用户密码加密
-func ScryptPw(password string) string {
-	const KeyLen = 10
-	salt := []byte{12, 3, 4, 66, 234, 11, 42, 90}
-	HashPwd, err := scrypt.Key([]byte(password), salt, 16384, 8, 1, KeyLen)
+func generateRandomSalt() string {
+	// 生成随机的8字节数据作为盐值
+	randomBytes := make([]byte, 8)
+	_, err := rand.Read(randomBytes)
 	if err != nil {
-		//!日后处理
-		//log.Fatal("加盐加密错误：%s", err)
-		return ""
+		randomBytes = []byte{12, 3, 4, 66, 234, 11, 42, 90}
 	}
-	fpw := base64.StdEncoding.EncodeToString(HashPwd)
-	return fpw
+	// 将随机字节数据转换为十六进制字符串
+	salt := hex.EncodeToString(randomBytes)
+	return salt
+}
+
+// 用户密码加密
+func ScryptPw(password string, salt string) string {
+	// 对密码和盐值分别进行单向哈希
+	passwordHash := hashString(password)
+	saltHash := hashString(salt)
+
+	// 将密码哈希和盐值哈希拼接后再进行一次哈希
+	combinedHash := hashString(passwordHash + saltHash)
+
+	return combinedHash
 }
 func (u *User) BeforeSave() {
-	u.Password = ScryptPw(u.Password)
+	u.Salt = generateRandomSalt()
+	u.Password = ScryptPw(u.Password, u.Salt)
 	if u.Image == "" {
 		u.Image = "http://s98w22032.hb-bkt.clouddn.com/default.jpg"
 	}
 } //?gorm 自带
 
-// 注册时查询用户是否存在&&默认头像
+// 注册时查询用户是否存在
 func CheckUser(username string) (code int) {
-	var users User
-	global.Db.Select("id").Where("username=?", username).First(&users)
-	if users.ID > 0 {
+	var count int
+	global.Db.Model(&User{}).Where("username = ?", username).Count(&count)
+	if count > 0 {
 		return rspcode.ERROR_USERNAME_USED
 	}
 	return rspcode.SUCCESS
@@ -61,4 +83,34 @@ func CreateUser(data *User) (code int) {
 		return rspcode.ERROR
 	}
 	return rspcode.SUCCESS
+}
+
+// 登录验证
+func CheckLogin(username string, password string) int {
+	var user User
+	global.Db.Where("username=?", username).First(&user)
+	//fmt.Println(username,password)
+	//fmt.Println(user)
+	if user.ID == 0 {
+		return rspcode.ERROR_USER_NOT_EXIST
+	}
+	if password == "" {
+		return rspcode.ERROR_PASSWORD_NO_EXIST
+	}
+	encryptedPassword := ScryptPw(password, user.Salt) // 对输入的密码进行加密
+
+	if encryptedPassword != user.Password {
+		return rspcode.ERROR_PASSWORD_WRONG
+	}
+	if user.Role != 1 {
+		return rspcode.ERROR_USER_NO_RIGHT
+	}
+	return rspcode.SUCCESS
+}
+
+func hashString(input string) string {
+	hash := sha1.New()
+	hash.Write([]byte(input))
+	hashed := hash.Sum(nil)
+	return hex.EncodeToString(hashed)
 }

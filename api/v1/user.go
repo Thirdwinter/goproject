@@ -1,30 +1,34 @@
 package v1
 
 import (
+	"goproject/middleware"
 	"goproject/models"
-	_"goproject/service"
+	_ "goproject/service"
 	"goproject/utils/rspcode"
-	_"goproject/utils/vaildator"
+	validator "goproject/utils/vaildator"
 
 	"github.com/gin-gonic/gin"
 )
 
 var code int
+
 // 添加用户
 func AddUser(c *gin.Context) {
-	// var msg string
+	var msg string
 	var data models.User
-	var headimg models.HeadImg
+	//var headimg models.HeadImg
 	_ = c.ShouldBindJSON(&data)
-	_ = c.ShouldBindJSON(&headimg)
-	// msg, code = validator.Validate(&data)
-	// if code != rspcode.SUCCESS {
-	// 	c.JSON(200, gin.H{
-	// 		"code": code,
-	// 		"msg":  msg,
-	// 	})
-	// 	return
-	// }
+	// _ = c.ShouldBindJSON(&data.Password)
+	// _ = c.ShouldBindJSON(&data.Role)
+	// _ = c.ShouldBindJSON(&headimg)
+	msg, code = validator.ValidateUserRegistration(data)
+	if code != rspcode.SUCCESS {
+		c.JSON(200, gin.H{
+			"code": code,
+			"msg":  msg,
+		})
+		return
+	}
 
 	code = models.CheckUser(data.Username)
 	if code == rspcode.SUCCESS {
@@ -40,5 +44,39 @@ func AddUser(c *gin.Context) {
 		//"data":   data,
 		"msg": rspcode.GetMsg(code),
 	})
+}
 
+func Login(c *gin.Context) {
+	var data models.User
+	_ = c.ShouldBindJSON(&data)
+	//fmt.Println(err)
+	//fmt.Println("json:",data)
+	var atoken string
+	var rtoken string
+	code = models.CheckLogin(data.Username, data.Password)
+	if code == rspcode.SUCCESS {
+		atoken, rtoken, code = middleware.SetToken(data.Username,data.Role)
+		//atoken, _ = mdw2.SetToken(data.Username)
+		//c.SetCookie("token", atoken, 3600, "/", "", false, true)
+
+		// c.JSON(200, gin.H{
+		// 	"code": 200,
+		// 	"msg":  "Login successful",
+		// })
+
+		c.JSON(200, gin.H{
+			"code":   code,
+			"msg":    rspcode.GetMsg(code),
+			"atoken": atoken,
+			"rtoken": rtoken,
+		})
+		return
+	} else {
+		c.JSON(200, gin.H{
+			"code": code,
+			"msg":  rspcode.GetMsg(code),
+		})
+		c.Abort()
+		return
+	}
 }

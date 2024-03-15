@@ -37,6 +37,7 @@ var (
 		ERROR_PASSWORD_WRONG:    "密码错误!",
 		ERROR_PASSWORD_NO_EXIST: "请输入密码",
 		ERROR_USER_NOT_EXIST:    "用户不存在!",
+		//ERROR_USER_NO_RIGHT:     "用户不正确",
 		ERROR_TOKEN_EXIST:       "TOKEN不存在!",
 		ERROR_TOKEN_LONGTIME:    "TOKEN超时!",
 		ERROR_TOKEN_WRONG:       "TOKEN错误!",

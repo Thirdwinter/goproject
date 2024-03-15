@@ -1,33 +1,23 @@
 package validator
 
 import (
-	"reflect"
-
-	"github.com/ThirdWinter/Go/gvb_server/utils/errmsg"
-	"github.com/go-playground/locales/zh_Hans_CN"
-	unTrans "github.com/go-playground/universal-translator"
-	"github.com/go-playground/validator/v10"
-	zhTrans "github.com/go-playground/validator/v10/translations/zh"
+	"goproject/models"
+	"goproject/utils/rspcode"
 )
 
-func Validate(data interface{}) (string, int) {
-	validate := validator.New()
-	uni := unTrans.New(zh_Hans_CN.New())
-	trans, _ := uni.GetTranslator("zh_Hans_CN")
-	err := zhTrans.RegisterDefaultTranslations(validate, trans)
-	if err != nil {
-		return "", 0
+func ValidateUserRegistration(user models.User) (string, int) {
+
+	if len(user.Username) < 4 || len(user.Username) > 12 {
+		return "用户名长度限制4-12位", rspcode.ERROR
 	}
 
-	validate.RegisterTagNameFunc(func(field reflect.StructField) string {
-		label := field.Tag.Get("label")
-		return label
-	})
-	err = validate.Struct(data)
-	if err != nil {
-		for _, v := range err.(validator.ValidationErrors) {
-			return v.Translate(trans), errmsg.ERROR
-		}
-	}
-	return "", errmsg.SUCCESS
+	// if err := validate.Var(user.Password, "required,min=6,max=20"); err != nil {
+	// 	return "密码长度限制6-20位",rspcode.ERROR
+	// }
+
+	// if err := validate.Var(user.Role, "required,gte=2"); err != nil {
+	// 	return "权限错误",rspcode.ERROR
+	// }
+
+	return "", rspcode.SUCCESS
 }
