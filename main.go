@@ -11,5 +11,6 @@ func main() {
 	core.InitConf()
 	//core.Initlog()
 	core.InitGorm()
+	core.InitRedis()
 	routers.InitRouter()
 }

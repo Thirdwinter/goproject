@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"goproject/middleware"
 	"goproject/models"
-	_ "goproject/service"
+
+	//_ "goproject/service"
 	"goproject/utils/rspcode"
+
 	validator "goproject/utils/vaildator"
 
 	"github.com/gin-gonic/gin"
@@ -18,12 +20,26 @@ func AddUser(c *gin.Context) {
 	var msg string
 	var data models.User
 	//var headimg models.HeadImg
-	_ = c.ShouldBindJSON(&data)
-	//fmt.Printf("%#v",data)
-	// _ = c.ShouldBindJSON(&data.Password)
-	// _ = c.ShouldBindJSON(&data.Role)
-	// _ = c.ShouldBindJSON(&headimg)
+	data.Username = c.PostForm("username")
+	data.Password = c.PostForm("password")
+	data.Role = 1
+	data.Email=c.PostForm("email")
+
+	// file, fileHeader, _ := c.Request.FormFile("file")
+	// filesize := fileHeader.Size
+	// data.Image, code = service.UpLoadFile(file, filesize)
+	// c.JSON(200, gin.H{
+	// 	"code": code,
+	// 	"msg":  rspcode.GetMsg(code),
+	// 	"url":  data.Image,
+	// })
+
+	// fmt.Println("body:" ,dd)
+	//fmt.Println("abc:",abc)
+	//_ = c.ShouldBind(&data)
+	fmt.Printf("这里%#v\n", data)
 	msg, code = validator.ValidateUserRegistration(data)
+	//code = 200
 	if code != rspcode.SUCCESS {
 		c.JSON(200, gin.H{
 			"code": code,
@@ -31,7 +47,7 @@ func AddUser(c *gin.Context) {
 		})
 		return
 	}
-
+	//fmt.Println("yonghum: ", data.Username)
 	code = models.CheckUser(data.Username)
 	if code == rspcode.SUCCESS {
 		//!有问题,先不用
@@ -55,10 +71,10 @@ func Login(c *gin.Context) {
 	//fmt.Println("json:",data)
 	var atoken string
 	var rtoken string
-	code ,user:= models.CheckLogin(data.Username, data.Password)
+	code, user := models.CheckLogin(data.Username, data.Password)
 	//fmt.Println("user:",user)
 	if code == rspcode.SUCCESS {
-		fmt.Println("login,r:",user.Role)
+		fmt.Println("login,r:", user.Role)
 		atoken, rtoken, code = middleware.SetToken(data.Username, user.Role)
 		//atoken, _ = mdw2.SetToken(data.Username)
 		//c.SetCookie("token", atoken, 3600, "/", "", false, true)

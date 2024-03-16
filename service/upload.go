@@ -5,10 +5,8 @@ import (
 	"context"
 	"encoding/base64"
 	"mime/multipart"
-
 	"goproject/global"
 	"goproject/utils/rspcode"
-
 	"github.com/qiniu/go-sdk/v7/auth"
 	"github.com/qiniu/go-sdk/v7/storage"
 )
@@ -39,7 +37,7 @@ func UpLoadFile(file multipart.File, filesize int64) (string, int) {
 	if err != nil {
 		return "", rspcode.ERROR
 	}
-	url := ImgUrl + ret.Key
+	url := ImgUrl + "/"+ret.Key
 	return url, rspcode.SUCCESS
 }
 

@@ -3,7 +3,17 @@ package validator
 import (
 	"goproject/models"
 	"goproject/utils/rspcode"
+	"regexp"
 )
+
+// 使用正则表达式匹配邮箱格式
+func validateEmail(email string) (bool,error) {
+	// 使用正则表达式匹配邮箱格式
+	regex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	match, err := regexp.MatchString(regex, email)
+	return match, err
+}
+
 
 func ValidateUserRegistration(user models.User) (string, int) {
 
@@ -18,13 +28,12 @@ func ValidateUserRegistration(user models.User) (string, int) {
 	if user.Role != 1 {
 		return "用户无法申请更高权限", rspcode.ERROR
 	}
-	// if err := validate.Var(user.Password, "required,min=6,max=20"); err != nil {
-	// 	return "密码长度限制6-20位",rspcode.ERROR
-	// }
 
-	// if err := validate.Var(user.Role, "required,gte=2"); err != nil {
-	// 	return "权限错误",rspcode.ERROR
-	// }
+	ok,err:=validateEmail(user.Email)
+	if !ok || err != nil{
+		return "用户邮箱错误", rspcode.ERROR
+	}
+
 
 	return "", rspcode.SUCCESS
 }

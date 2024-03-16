@@ -26,7 +26,10 @@ type User struct {
 	Password string `gorm:"type:varchar(50);not null" json:"password" binding:"required" label:"密码"`
 	Role     int    `gorm:"type:int;DEFAULT:2" json:"role" label:"角色码"`
 	Image    string `gorm:"type:text" label:"用户头像"`
+	Email    string `gorm:"type:varchar(30);not null" json:"email" binding:"required" label:"用户邮箱"`
 	Salt     string `gorm:"type:varchar(20)" label:"m"`
+	Q        string `gorm:"type:varchar(30)"`
+	A        string `gorm:"type:varchar(30)"`
 }
 
 type HeadImg struct {
@@ -92,20 +95,20 @@ func CheckLogin(username string, password string) (int, User) {
 	//fmt.Println(username,password)
 	//fmt.Println(user)
 	if user.ID == 0 {
-		return rspcode.ERROR_USER_NOT_EXIST,user
+		return rspcode.ERROR_USER_NOT_EXIST, user
 	}
 	if password == "" {
-		return rspcode.ERROR_PASSWORD_NO_EXIST,user
+		return rspcode.ERROR_PASSWORD_NO_EXIST, user
 	}
 	encryptedPassword := ScryptPw(password, user.Salt) // 对输入的密码进行加密
 
 	if encryptedPassword != user.Password {
-		return rspcode.ERROR_PASSWORD_WRONG,user
+		return rspcode.ERROR_PASSWORD_WRONG, user
 	}
-	if user.Role != 1&&user.Role!=2 {
-		return rspcode.ERROR_USER_NO_RIGHT,user
+	if user.Role != 1 && user.Role != 2 {
+		return rspcode.ERROR_USER_NO_RIGHT, user
 	}
-	return rspcode.SUCCESS,user
+	return rspcode.SUCCESS, user
 }
 
 func hashString(input string) string {
