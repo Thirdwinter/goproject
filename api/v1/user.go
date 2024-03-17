@@ -4,16 +4,14 @@ import (
 	"fmt"
 	"goproject/middleware"
 	"goproject/models"
-
-	//_ "goproject/service"
+	"goproject/service"
 	"goproject/utils/rspcode"
-
 	validator "goproject/utils/vaildator"
 
 	"github.com/gin-gonic/gin"
 )
 
-var code int
+//var code int
 
 // 添加用户
 func AddUser(c *gin.Context) {
@@ -23,22 +21,10 @@ func AddUser(c *gin.Context) {
 	data.Username = c.PostForm("username")
 	data.Password = c.PostForm("password")
 	data.Role = 1
-	data.Email=c.PostForm("email")
+	data.Email = c.PostForm("email")
 
-	// file, fileHeader, _ := c.Request.FormFile("file")
-	// filesize := fileHeader.Size
-	// data.Image, code = service.UpLoadFile(file, filesize)
-	// c.JSON(200, gin.H{
-	// 	"code": code,
-	// 	"msg":  rspcode.GetMsg(code),
-	// 	"url":  data.Image,
-	// })
-
-	// fmt.Println("body:" ,dd)
-	//fmt.Println("abc:",abc)
-	//_ = c.ShouldBind(&data)
-	fmt.Printf("这里%#v\n", data)
-	msg, code = validator.ValidateUserRegistration(data)
+	//fmt.Printf("这里%#v\n", data)
+	msg, code := validator.ValidateUserRegistration(data)
 	//code = 200
 	if code != rspcode.SUCCESS {
 		c.JSON(200, gin.H{
@@ -47,11 +33,15 @@ func AddUser(c *gin.Context) {
 		})
 		return
 	}
-	//fmt.Println("yonghum: ", data.Username)
 	code = models.CheckUser(data.Username)
 	if code == rspcode.SUCCESS {
-		//!有问题,先不用
-		//data.Image, _= service.UpLoadBase64Image(headimg.Imgstr)
+		file, fileHeader, _ := c.Request.FormFile("file")
+		filesize := fileHeader.Size
+		data.Image, code = service.UpLoadFile(file, filesize)
+		if code != 200 {
+			data.Image = "http://s98w22032.hb-bkt.clouddn.com/default.jpg"
+			return
+		}
 		models.CreateUser(&data)
 	}
 	if code == rspcode.ERROR_USERNAME_USED {
@@ -64,6 +54,7 @@ func AddUser(c *gin.Context) {
 	})
 }
 
+// 用户登录
 func Login(c *gin.Context) {
 	var data models.User
 	_ = c.ShouldBindJSON(&data)
@@ -99,4 +90,50 @@ func Login(c *gin.Context) {
 		c.Abort()
 		return
 	}
+}
+
+// 修改头像
+func UpdateUserImage(c *gin.Context) {
+	newfile, fileHeader, _ := c.Request.FormFile("newfile")
+	filesize := fileHeader.Size
+	url, code := service.UpLoadFile(newfile, filesize)
+	if code != 200 {
+		c.JSON(200, gin.H{
+			"code": 500,
+			"msg":  "更换头像失败,上传头像失败",
+		})
+		c.Abort()
+		return
+	}
+	who, exists := c.Get("username")
+	name := who.(string)
+	if !exists {
+		c.JSON(200, gin.H{
+			"code": 500,
+			"msg":  "更换头像失败,无法获取用户权限",
+		})
+		c.Abort()
+		return
+	}
+	code, user := models.UpdateUserImage(name, url)
+	if code == 200 {
+		c.JSON(200, gin.H{
+			"code": 200,
+			"data": user.Image,
+			"msg":  "更新头像成功",
+		})
+		return
+	} else {
+		c.JSON(200, gin.H{
+			"code": 500,
+			"msg":  "更新头像失败",
+		})
+		c.Abort()
+		return
+	}
+}
+
+// 修改个人信息
+// !先扔着
+func UpdateUserInfo(c *gin.Context) {
 }

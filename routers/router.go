@@ -20,14 +20,17 @@ func InitRouter() {
 	//r.Use(middleware.JwtToken())
 
 	user := r.Group("user")
-	user.Use(middleware.CheckUserRole())
+	//user.Use(middleware.CheckUserRole())
 	{
 		user.POST("login", v1.Login)
+		user.POST("updatauimg",  v1.UpdateUserImage)
 	}
 	admin := r.Group("admin")
-	admin.Use(middleware.CheckAdminRole())
+	//admin.Use(middleware.CheckAdminRole())
 	{
 		admin.POST("login", v1.Login)
+		admin.POST("newcom", v1.CreateCompetition)
+		admin.POST("ucom", v1.UpdateCompetition)
 	}
 
 	r.Run(global.Config.System.Addr())

@@ -59,7 +59,7 @@ func ScryptPw(password string, salt string) string {
 
 	return combinedHash
 }
-func (u *User) BeforeSave() {
+func (u *User) BeforeCreate() {
 	u.Salt = generateRandomSalt()
 	u.Password = ScryptPw(u.Password, u.Salt)
 	if u.Image == "" {
@@ -111,6 +111,23 @@ func CheckLogin(username string, password string) (int, User) {
 	return rspcode.SUCCESS, user
 }
 
+// 更新头像
+func UpdateUserImage(username string, newimage string)(int, User) {
+	var user User
+	global.Db.First(&user, "username = ?",username)
+	if user.ID != 0{
+		user.Image = newimage
+		global.Db.Save(&user)
+		return 200, user
+	} else {
+		return 500, user
+	}
+}
+
+
+
+
+// 加密函数
 func hashString(input string) string {
 	hash := sha1.New()
 	hash.Write([]byte(input))
