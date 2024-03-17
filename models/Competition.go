@@ -3,6 +3,7 @@
 package models
 
 import (
+	"errors"
 	"goproject/global"
 	"goproject/utils/rspcode"
 
@@ -35,11 +36,11 @@ func CreateCompetition(com *Competition) (code int) {
 }
 
 // 更新赛事
-func UpdateCompetition(ntitle,ninfo string) (code int) {
+func UpdateCompetition(title, ntitle, ninfo string) (code int) {
 	var com Competition
 	if ntitle != "" {
-		global.Db.Find(&com, "title = ?",com.Title)
-		if com.ID != 0 && ninfo != ""{
+		global.Db.Find(&com, "title = ?", title)
+		if com.ID != 0 && ninfo != "" {
 			com.Title = ntitle
 			com.Info = ninfo
 			global.Db.Save(&com)
@@ -50,6 +51,41 @@ func UpdateCompetition(ntitle,ninfo string) (code int) {
 }
 
 // 删除赛事
-func DelCompetiton() {
+func DelCompetiton(title string) int {
+	var com Competition
 
+	global.Db.First(&com, "title=?", title)
+	if com.ID != 0 {
+		result := global.Db.Delete(com)
+		if result.Error != nil {
+			return 500
+		}
+		return 200
+	}
+	return 500
+}
+
+
+// 分页查询
+func SelectPage(pageSize, pageNum int) ([]Competition, int) {
+	var competitions []Competition
+	var total int
+
+	var err error
+	if pageNum <= 0 {
+		pageNum = 1
+	}
+	offset := (pageNum - 1) * pageSize
+	err = global.Db.Limit(pageSize).Offset(offset).Find(&competitions).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return competitions, 0
+		}
+		return nil, 0
+	}
+	err = global.Db.Model(&User{}).Count(&total).Error
+	if err != nil {
+		return nil, 0
+	}
+	return competitions, total
 }

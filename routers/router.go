@@ -24,6 +24,7 @@ func InitRouter() {
 	{
 		user.POST("login", v1.Login)
 		user.POST("updatauimg",  v1.UpdateUserImage)
+		user.GET("select/competiton/:pagesize/:pagenum", v1.SelectPageCompetiton)
 	}
 	admin := r.Group("admin")
 	//admin.Use(middleware.CheckAdminRole())
@@ -31,6 +32,7 @@ func InitRouter() {
 		admin.POST("login", v1.Login)
 		admin.POST("newcom", v1.CreateCompetition)
 		admin.POST("ucom", v1.UpdateCompetition)
+		admin.POST("dcom", v1.DelCompetiton)
 	}
 
 	r.Run(global.Config.System.Addr())
