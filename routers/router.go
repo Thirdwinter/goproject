@@ -18,6 +18,7 @@ func InitRouter() {
 	r.POST("api/user/add", v1.AddUser) // 注册
 	r.POST("api/user/login", v1.Login)  // 登录
 	//r.Use(middleware.JwtToken())
+	r.Use(middleware.GetUser())
 
 	user := r.Group("user")
 	//user.Use(middleware.CheckUserRole())
@@ -25,6 +26,8 @@ func InitRouter() {
 		user.POST("login", v1.Login)
 		user.POST("updatauimg",  v1.UpdateUserImage)
 		user.GET("select/competiton/:pagesize/:pagenum", v1.SelectPageCompetiton)
+		user.POST("select/info", v1.SelectUserDataById)
+		user.POST("select/id", v1.SelectIdByPhone)
 	}
 	admin := r.Group("admin")
 	//admin.Use(middleware.CheckAdminRole())

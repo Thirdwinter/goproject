@@ -7,6 +7,7 @@ import (
 	"goproject/service"
 	"goproject/utils/rspcode"
 	validator "goproject/utils/vaildator"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,6 +21,7 @@ func AddUser(c *gin.Context) {
 	//var headimg models.HeadImg
 	data.Username = c.PostForm("username")
 	data.Password = c.PostForm("password")
+	data.Phonenumber = c.PostForm("phonenumber")
 	data.Role = 1
 	data.Email = c.PostForm("email")
 
@@ -57,7 +59,9 @@ func AddUser(c *gin.Context) {
 // 用户登录
 func Login(c *gin.Context) {
 	var data models.User
-	_ = c.ShouldBindJSON(&data)
+	//_ = c.ShouldBindJSON(&data)
+	data.Username = c.PostForm("username")
+	data.Password = c.PostForm("password")
 	//fmt.Println(err)
 	//fmt.Println("json:",data)
 	var atoken string
@@ -80,6 +84,8 @@ func Login(c *gin.Context) {
 			"msg":    rspcode.GetMsg(code),
 			"atoken": atoken,
 			"rtoken": rtoken,
+			"username":data.Username,
+			"uid":user.ID,
 		})
 		return
 	} else {
@@ -136,4 +142,67 @@ func UpdateUserImage(c *gin.Context) {
 // 修改个人信息
 // !先扔着
 func UpdateUserInfo(c *gin.Context) {
+}
+
+// form提交"phone"
+func SelectIdByPhone(c *gin.Context){
+	phone:=c.PostForm("phone")
+	if phone == ""{
+		c.JSON(400, gin.H{
+			"code":400,
+			"msg":"参数错误",
+		})
+		c.Abort()
+		return
+	}
+	uid,code:=models.SelectIdByPhone(phone)
+	if code==500{
+		c.JSON(500, gin.H{
+			"code":500,
+			"msg":"查询错误",
+		})
+		c.Abort()
+		return
+	}
+	c.JSON(200, gin.H{
+		"code":200,
+		"msg":"ok",
+		"data":uid,
+	})
+}
+
+// form提交"uid"
+func SelectUserDataById(c *gin.Context){
+	uid:=c.PostForm("uid")
+	if uid == ""{
+		c.JSON(400, gin.H{
+			"code":400,
+			"msg":"参数错误",
+		})
+		c.Abort()
+		return		
+	}
+	id,err:=strconv.Atoi(uid)
+	if err!= nil{
+		c.JSON(400, gin.H{
+			"code":400,
+			"msg":"参数错误",
+		})
+		c.Abort()
+		return
+	}
+	userinfo,code:=models.SelectUserDataById(uint(id))
+	if code != 200{
+		c.JSON(500, gin.H{
+			"code":500,
+			"msg":"查询失败",
+		})
+		c.Abort()
+		return
+	}
+	c.JSON(200, gin.H{
+		"code":200,
+		"msg":"ok",
+		"data":userinfo,
+	})
 }

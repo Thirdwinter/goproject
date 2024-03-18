@@ -2,7 +2,6 @@ package v1
 
 import (
 	"goproject/models"
-	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -45,29 +44,29 @@ func CreateCompetition(c *gin.Context) {
 }
 
 func UpdateCompetition(c *gin.Context) {
-	title:=c.PostForm("title")
+	title := c.PostForm("title")
 	ntitle := c.PostForm("ntitle")
 	ninfo := c.PostForm("ninfo")
 
 	// 参数校验
-	if title==""|| ntitle == "" || ninfo == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"code": http.StatusBadRequest,
+	if title == "" || ntitle == "" || ninfo == "" {
+		c.JSON(200, gin.H{
+			"code": 400,
 			"msg":  "标题和信息不能为空",
 		})
 		return
 	}
 
-	code := models.UpdateCompetition(title,ntitle, ninfo)
+	code := models.UpdateCompetition(title, ntitle, ninfo)
 	if code != 200 {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		c.JSON(200, gin.H{
 			"code": code,
 			"msg":  "更新失败",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	c.JSON(200, gin.H{
 		"code": code,
 		"msg":  "更新成功",
 	})
@@ -97,34 +96,34 @@ func DelCompetiton(c *gin.Context) {
 }
 
 func SelectPageCompetiton(c *gin.Context) {
-	pagesize, err:= strconv.Atoi(c.Param("pagesize"))
-	if err!= nil{
+	pagesize, err := strconv.Atoi(c.Param("pagesize"))
+	if err != nil {
 		c.JSON(200, gin.H{
-			"code":400,
-			"msg":"分页参数错误",
+			"code": 400,
+			"msg":  "分页参数错误",
 		})
 		return
 	}
-	pagenum,err:= strconv.Atoi(c.Param("pagenum"))
-	if err!= nil{
+	pagenum, err := strconv.Atoi(c.Param("pagenum"))
+	if err != nil {
 		c.JSON(200, gin.H{
-			"code":400,
-			"msg":"分页参数错误",
+			"code": 400,
+			"msg":  "分页参数错误",
 		})
 		return
 	}
-	com,total:=models.SelectPage(pagesize, pagenum)
-	if total==0{
+	com, total := models.SelectPage(pagesize, pagenum)
+	if total == 0 {
 		c.JSON(200, gin.H{
-			"code":500,
-			"msg":"查询错误",
+			"code": 500,
+			"msg":  "查询错误",
 		})
 		return
 	}
 	c.JSON(200, gin.H{
-		"code":200,
-		"msg":"查询成功",
-		"data":com,
-		"total":total,
+		"code":  200,
+		"msg":   "查询成功",
+		"data":  com,
+		"total": total,
 	})
 }

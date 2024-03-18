@@ -1,3 +1,5 @@
+// 用户列表相关
+
 package models
 
 import (
@@ -22,14 +24,15 @@ import (
 
 type User struct {
 	gorm.Model
-	Username string `gorm:"type:varchar(20);not null" json:"username" binding:"required" label:"用户名"`
-	Password string `gorm:"type:varchar(50);not null" json:"password" binding:"required" label:"密码"`
-	Role     int    `gorm:"type:int;DEFAULT:2" json:"role" label:"角色码"`
-	Image    string `gorm:"type:text" label:"用户头像"`
-	Email    string `gorm:"type:varchar(30);not null" json:"email" binding:"required" label:"用户邮箱"`
-	Salt     string `gorm:"type:varchar(20)" label:"m"`
-	Q        string `gorm:"type:varchar(30)"`
-	A        string `gorm:"type:varchar(30)"`
+	Username    string `gorm:"type:varchar(20);not null" json:"username" binding:"required" label:"用户名"`
+	Password    string `gorm:"type:varchar(50);not null" json:"password" binding:"required" label:"密码"`
+	Role        int    `gorm:"type:int;DEFAULT:2" json:"role" label:"角色码"`
+	Image       string `gorm:"type:text" label:"用户头像"`
+	Email       string `gorm:"type:varchar(30);not null;unique" json:"email" binding:"required" label:"用户邮箱"`
+	Salt        string `gorm:"type:varchar(20)" label:"m"`
+	Phonenumber string `gorm:"type:varchar(20);unique"`
+	Q           string `gorm:"type:varchar(30)"`
+	A           string `gorm:"type:varchar(30)"`
 }
 
 type HeadImg struct {
@@ -112,10 +115,10 @@ func CheckLogin(username string, password string) (int, User) {
 }
 
 // 更新头像
-func UpdateUserImage(username string, newimage string)(int, User) {
+func UpdateUserImage(username string, newimage string) (int, User) {
 	var user User
-	global.Db.First(&user, "username = ?",username)
-	if user.ID != 0{
+	global.Db.First(&user, "username = ?", username)
+	if user.ID != 0 {
 		user.Image = newimage
 		global.Db.Save(&user)
 		return 200, user
@@ -124,13 +127,31 @@ func UpdateUserImage(username string, newimage string)(int, User) {
 	}
 }
 
-
-
-
 // 加密函数
 func hashString(input string) string {
 	hash := sha1.New()
 	hash.Write([]byte(input))
 	hashed := hash.Sum(nil)
 	return hex.EncodeToString(hashed)
+}
+
+// 根据手机号查找uid
+func SelectIdByPhone(phone string)(uint,int){
+	var user User
+	err:=global.Db.Find(&user, "phonenumber=?",phone).Error
+	if err != nil {
+		return 0, 500
+	}
+	return user.ID,200
+}
+
+// 根据id查找用户全部信息(除了密码)
+func SelectUserDataById(id uint)(User,int){
+	var user User
+	err:=global.Db.Find(&user, "id=?",id).Error
+	if err!= nil{
+		return user,500
+	}
+	user.Password = ""
+	return user,200
 }
