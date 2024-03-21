@@ -10,7 +10,7 @@ import(
 func main() {
 	core.InitConf()
 	//core.Initlog()
-	core.InitGorm()
+	//core.InitGorm()
 	core.InitRedis()
 	routers.InitRouter()
 }

@@ -21,6 +21,6 @@ func InitGorm() {
 	global.Db.DB().SetMaxOpenConns(100)
 	global.Db.DB().SetConnMaxLifetime(10 * time.Second)
 	global.Db.SingularTable(true)                                                // 禁止表名复数化
-	global.Db.AutoMigrate(&models.User{},&models.Competition{}) // 数据模型迁移
+	global.Db.AutoMigrate(&models.User{},&models.Competition{},models.Inform{},models.Group{}) // 数据模型迁移
 	//global.Db.Close()
 }

@@ -39,6 +39,7 @@ func CreateCompetition(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{
 		"code": 200,
+		"data": data,
 		"msg":  "添加赛事成功",
 	})
 }
@@ -57,7 +58,7 @@ func UpdateCompetition(c *gin.Context) {
 		return
 	}
 
-	code := models.UpdateCompetition(title, ntitle, ninfo)
+	data, code := models.UpdateCompetition(title, ntitle, ninfo)
 	if code != 200 {
 		c.JSON(200, gin.H{
 			"code": code,
@@ -68,6 +69,7 @@ func UpdateCompetition(c *gin.Context) {
 
 	c.JSON(200, gin.H{
 		"code": code,
+		"data": data,
 		"msg":  "更新成功",
 	})
 }

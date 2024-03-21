@@ -36,7 +36,7 @@ func CreateCompetition(com *Competition) (code int) {
 }
 
 // 更新赛事
-func UpdateCompetition(title, ntitle, ninfo string) (code int) {
+func UpdateCompetition(title, ntitle, ninfo string) (Competition ,int) {
 	var com Competition
 	if ntitle != "" {
 		global.Db.Find(&com, "title = ?", title)
@@ -44,10 +44,10 @@ func UpdateCompetition(title, ntitle, ninfo string) (code int) {
 			com.Title = ntitle
 			com.Info = ninfo
 			global.Db.Save(&com)
-			return 200
+			return com,200
 		}
 	}
-	return 500
+	return com, 500
 }
 
 // 删除赛事

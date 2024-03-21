@@ -1,0 +1,26 @@
+mysql:
+  host: 0.0.0.0
+  port: 3306
+  db:   # 数据库名
+  user: root # 用户
+  password: .. # 密码
+  config: charset=utf8mb4&parseTime=True&loc=Local # 连接配置
+logger:
+  out: True
+  loglevel: debug
+  logpaht: ./
+  logname: log.log
+  logsize: 10240000000
+system:
+  host: 0.0.0.0 # 启动地址
+  port: 8081 # 端口
+  env: debug # 启动模式
+  jwtkey: qweradf # jwt密钥
+  accesskey: # 七牛云访问accesskey
+  secretkey:  # 七牛云访问secretkey
+  bucket: .. # 对象存储空间名称
+  qiniuserver: http://... # 对象存储空间地址
+redis:
+  ip: 0.0.0.0
+  port: 6379
+  password: ..

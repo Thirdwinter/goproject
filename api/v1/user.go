@@ -22,9 +22,15 @@ func AddUser(c *gin.Context) {
 	data.Username = c.PostForm("username")
 	data.Password = c.PostForm("password")
 	data.Phonenumber = c.PostForm("phonenumber")
-	data.Role = 1
 	data.Email = c.PostForm("email")
-
+	data.Role = 1
+	if data.Username==""||data.Password==""||data.Phonenumber==""||data.Email==""{
+		c.JSON(400, gin.H{
+			"code":400,
+			"msg":"用户信息上传错误",
+		})
+		return
+	}
 	//fmt.Printf("这里%#v\n", data)
 	msg, code := validator.ValidateUserRegistration(data)
 	//code = 200
@@ -37,7 +43,14 @@ func AddUser(c *gin.Context) {
 	}
 	code = models.CheckUser(data.Username)
 	if code == rspcode.SUCCESS {
-		file, fileHeader, _ := c.Request.FormFile("file")
+		file, fileHeader, err := c.Request.FormFile("file")
+		if err!=nil{
+			c.JSON(400, gin.H{
+				"code":400,
+				"msg":"图片上传错误",
+			})
+			return
+		}
 		filesize := fileHeader.Size
 		data.Image, code = service.UpLoadFile(file, filesize)
 		if code != 200 {
@@ -101,6 +114,13 @@ func Login(c *gin.Context) {
 // 修改头像
 func UpdateUserImage(c *gin.Context) {
 	newfile, fileHeader, _ := c.Request.FormFile("newfile")
+	username:=c.PostForm("username")
+	if username == ""{
+		c.JSON(400, gin.H{
+			"code":400,
+		})
+		return
+	}
 	filesize := fileHeader.Size
 	url, code := service.UpLoadFile(newfile, filesize)
 	if code != 200 {
@@ -111,17 +131,17 @@ func UpdateUserImage(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	who, exists := c.Get("username")
-	name := who.(string)
-	if !exists {
-		c.JSON(200, gin.H{
-			"code": 500,
-			"msg":  "更换头像失败,无法获取用户权限",
-		})
-		c.Abort()
-		return
-	}
-	code, user := models.UpdateUserImage(name, url)
+	// who, exists := c.Get("username")
+	// name := who.(string)
+	// if !exists {
+	// 	c.JSON(200, gin.H{
+	// 		"code": 500,
+	// 		"msg":  "更换头像失败,无法获取用户权限",
+	// 	})
+	// 	c.Abort()
+	// 	return
+	// }
+	code, user := models.UpdateUserImage(username, url)
 	if code == 200 {
 		c.JSON(200, gin.H{
 			"code": 200,
